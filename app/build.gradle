@@ -21,10 +21,11 @@ android {
 }
 
 ext {
-    mapfit_sdk_version = '1.0.0'
+    mapfit_sdk_version = '1.1'
     support_library_version = '27.1.0'
     constraint_layout_version = '1.0.2'
     kotlinx_coroutines_version = '0.22.5'
+    androidx_ktx_version = '0.3'
 }
 
 dependencies {
@@ -36,10 +37,11 @@ dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinx_coroutines_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinx_coroutines_version"
+
+    implementation "androidx.core:core-ktx:$androidx_ktx_version"
 
     implementation "com.mapfit:android-sdk:$mapfit_sdk_version"
-
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
