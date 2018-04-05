@@ -5,7 +5,7 @@ This sample project is made to demonstrate the usage of [Mapfit Android SDK](htt
 
 ## What is included?
 - Changing the zoom level, center position, rotation and tilt of the map.
-- Placing an address with an entrance marker and building polygon. This feature uses the Mapfit Geocodoer API internally.
+- Placing an address with an entrance marker and building polygon. This feature uses the Mapfit Geocoder API internally.
 - Listening to marker click events.
 
 ## Requirements
