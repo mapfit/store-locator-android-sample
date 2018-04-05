@@ -1,3 +1,5 @@
+<img  src="/assets/readme-banner.png"/>
+
 # Store Locator Sample Project
 This sample project is made to demonstrate the usage of [Mapfit Android SDK](https://github.com/mapfit/android-sdk). In the project, 10 addresses are listed and drawn to the map as stores.
 
