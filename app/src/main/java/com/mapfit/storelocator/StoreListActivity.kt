@@ -18,7 +18,6 @@ import com.mapfit.android.Mapfit
 import com.mapfit.android.MapfitMap
 import com.mapfit.android.OnMapReadyCallback
 import com.mapfit.android.annotations.Marker
-import com.mapfit.android.annotations.Polyline
 import com.mapfit.android.annotations.callback.OnMarkerAddedCallback
 import com.mapfit.android.annotations.callback.OnMarkerClickListener
 import com.mapfit.android.geometry.LatLng
@@ -36,7 +35,6 @@ class StoreListActivity : AppCompatActivity() {
     private lateinit var mapfitMap: MapfitMap
     private lateinit var layoutManager: LinearLayoutManager
     private lateinit var selectionJob: Job
-    private lateinit var previousRouteLegs: List<Polyline>
 
     private val stores = getStoreArray()
     private val storeMarkerHash = HashMap<Int, Marker>()
@@ -238,15 +236,11 @@ class StoreListActivity : AppCompatActivity() {
      */
     private fun initialMapSettings(mapfitMap: MapfitMap) = launch {
         mapfitMap.apply {
-            setZoom(12.9461298f, 500)
-            setTilt(1.03056204f, 500)
-            setRotation(3.66300273f, 500)
-            setCenter(
-                LatLng(
-                    lat = 40.743075076735416,
-                    lng = -73.99652806346154
-                ), 500
-            )
+
+            setZoom(12.684684f, 500)
+            setRotation(2.0572796f, 500)
+            setTilt(0.8590987f, 500)
+            setCenter(LatLng(lat = 40.73748242049333, lng = -73.95733284034074), 500)
         }
     }
 
