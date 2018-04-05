@@ -8,12 +8,12 @@ class StoreVH(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
     private val txtTitle by lazy { itemView.findViewById<TextView>(R.id.txtTitle) }
     private val txtAddress by lazy { itemView.findViewById<TextView>(R.id.txtAddress) }
-    private val txtPhone by lazy { itemView.findViewById<TextView>(R.id.txtPhone) }
+    private val txtIndex by lazy { itemView.findViewById<TextView>(R.id.txtIndex) }
 
     fun bind(store: Store) {
         txtTitle.text = store.title
         txtAddress.text = store.address
-        txtPhone.text = store.phone
+        txtIndex.text = store.index.toString()
     }
 
 }

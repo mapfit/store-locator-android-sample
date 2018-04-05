@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">Store Locator</string>
+    <string name="app_name">Coffee Shop Locations</string>
+    <string name="get_directions">Get Directions</string>
+    <string name="action_github">Github</string>
 </resources>
