@@ -1,27 +1,31 @@
 package com.mapfit.storelocator
 
+import android.content.Intent
 import android.content.res.Resources
+import android.net.Uri
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.LinearSnapHelper
 import android.support.v7.widget.RecyclerView
+import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.RelativeLayout
-import android.widget.Toast
+import androidx.core.widget.toast
 import com.mapfit.android.Mapfit
 import com.mapfit.android.MapfitMap
 import com.mapfit.android.OnMapReadyCallback
 import com.mapfit.android.annotations.Marker
+import com.mapfit.android.annotations.Polyline
 import com.mapfit.android.annotations.callback.OnMarkerAddedCallback
 import com.mapfit.android.annotations.callback.OnMarkerClickListener
 import com.mapfit.android.geometry.LatLng
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.launch
-import org.jetbrains.anko.coroutines.experimental.bg
+
 
 /**
  * Displays Mapfit Map and store locations with Mapfit Geocoder.
@@ -32,6 +36,7 @@ class StoreListActivity : AppCompatActivity() {
     private lateinit var mapfitMap: MapfitMap
     private lateinit var layoutManager: LinearLayoutManager
     private lateinit var selectionJob: Job
+    private lateinit var previousRouteLegs: List<Polyline>
 
     private val stores = getStoreArray()
     private val storeMarkerHash = HashMap<Int, Marker>()
@@ -55,7 +60,6 @@ class StoreListActivity : AppCompatActivity() {
     }
 
     private fun init() {
-
         // this call instantiates the map asynchronously
         mapView.getMapAsync(onMapReadyCallback = object : OnMapReadyCallback {
             override fun onMapReady(mapfitMap: MapfitMap) {
@@ -68,12 +72,43 @@ class StoreListActivity : AppCompatActivity() {
         setupStoreList()
     }
 
+    private fun setupMap(mapfitMap: MapfitMap) {
+        this.mapfitMap = mapfitMap
+
+        addCoffeeShops()
+
+        mapfitMap.setOnMarkerClickListener(object : OnMarkerClickListener {
+            override fun onMarkerClicked(marker: Marker) {
+                for ((position, markerValue) in storeMarkerHash) {
+                    if (markerValue.id == marker.id) {
+                        selectStore(position)
+
+                        layoutManager.smoothScrollToPosition(
+                            storeRecycler,
+                            RecyclerView.State(),
+                            position
+                        )
+                    }
+                }
+            }
+        })
+
+        initialMapSettings(mapfitMap)
+    }
+
     /**
      * Setup RecyclerView and insert list of stores.
      */
     private fun setupStoreList() {
         storeAdapter = StoreAdapter()
         storeAdapter.addStores(*stores)
+
+        layoutManager = LinearLayoutManager(
+            this,
+            RecyclerView.HORIZONTAL,
+            false
+        )
+
         storeRecycler.layoutManager = layoutManager
 
         val snapHelper = LinearSnapHelper()
@@ -107,45 +142,16 @@ class StoreListActivity : AppCompatActivity() {
             16.asPx,
             16.asPx,
             0,
-            136.asPx
+            166.asPx
         )
         attributionContainer.layoutParams = newParams
 
-        layoutManager = LinearLayoutManager(
-            this,
-            RecyclerView.HORIZONTAL,
-            false
-        )
-    }
-
-    private fun setupMap(mapfitMap: MapfitMap) {
-        this.mapfitMap = mapfitMap
-
-        addStores()
-
-        mapfitMap.setOnMarkerClickListener(object : OnMarkerClickListener {
-            override fun onMarkerClicked(marker: Marker) {
-                for ((position, markerValue) in storeMarkerHash) {
-                    if (markerValue.id == marker.id) {
-                        selectStore(position)
-
-                        layoutManager.smoothScrollToPosition(
-                            storeRecycler,
-                            RecyclerView.State(),
-                            position
-                        )
-                    }
-                }
-            }
-        })
-
-        initialMapSettings(mapfitMap)
     }
 
     /**
-     * Add venues to the map.
+     * Adds coffee shops to the map with Mapfit Geocoder.
      */
-    private fun addStores() {
+    private fun addCoffeeShops() {
         var index = 0
         stores.forEach {
             addGeocodedMarker(index++, it.address)
@@ -191,13 +197,14 @@ class StoreListActivity : AppCompatActivity() {
                 }
 
                 override fun onError(exception: Exception) {
-                    Toast.makeText(mapView.context, exception.message, Toast.LENGTH_SHORT).show()
+                    this@StoreListActivity.toast(exception.message.toString())
                 }
             }
         )
     }
 
     private fun selectStore(position: Int) {
+
         if (!::selectionJob.isInitialized || selectionJob.isCompleted) {
 
             // zoom and center to selected store
@@ -208,27 +215,33 @@ class StoreListActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Returns an array of [Store] objects.
+     */
     private fun getStoreArray(): Array<Store> {
         return arrayOf(
-            Store("1", "525 w 26th St, Manhattan, NY, 10001", " 202-555-0164\n202-555-0115"),
-            Store("2", "205 w 34th St, Manhattan, NY, 10001", " 202-555-0127"),
-            Store("3", "494 8 Avenue, Manhattan, NY, 10001", "202-555-0138\n512-555-0116"),
-            Store("4", "875 6 Avenue, Manhattan, NY, 10001", "202-555-0175"),
-            Store("5", "122 Greenwich Avenue, Manhattan, NY, 10011", " 202-555-0142"),
-            Store("6", "177 8 Avenue, Manhattan, NY, 10011", "512-555-0171"),
-            Store("7", "227 w 27 St, Manhattan, NY, 10001", " 512-555-0160"),
-            Store("8", "776 Avenue of the Americas, Manhattan, NY, 10001", " 512-555-0196"),
-            Store("9", "124 8 Avenue, Manhattan ,NY ,10011", " 512-555-0116"),
-            Store("10", "74 7th Ave, Manhattan, NY, 10011", "512-555-0190")
+            Store("Chelsea", "450 W 15th Street,\nNew York, NY 10014", 1),
+            Store("Bryant Park", "54 W 40th Street,\nNew York, NY 10018", 2),
+            Store("Grand Central Palace", "60 E 42nd Street,\nNew York, NY 10165", 3),
+            Store("Rockefeller Center", "1 Rockefeller Plaza, Suite D,\nNew York,NY 10020", 4),
+            Store("Midtown East", "10 E 53rd Street,\nNew York, NY 10022", 5),
+            Store("Clinton Street", "71 Clinton Street,\nNew York, NY 10002", 6),
+            Store("Dean Street", "85 Dean Street Brooklyn,\nNY 11201", 7),
+            Store("Williamsburg", "76 N. 4th Street, Store A Brooklyn,\nNY 11249", 8),
+            Store("World Trade Center", "150 Greenwich St\nNew York, NY 10007", 9),
+            Store("University Place", "101 University Place New York, NY 10003", 10)
         )
     }
 
-    private fun initialMapSettings(mapfitMap: MapfitMap) {
-        bg {
-            mapfitMap.setZoom(14.939252f, 500)
-            mapfitMap.setTilt(1.0471976f, 500)
-            mapfitMap.setRotation(0.15686037f, 500)
-            mapfitMap.setCenter(
+    /**
+     * Changes map options to initial settings.
+     */
+    private fun initialMapSettings(mapfitMap: MapfitMap) = launch {
+        mapfitMap.apply {
+            setZoom(12.9461298f, 500)
+            setTilt(1.03056204f, 500)
+            setRotation(3.66300273f, 500)
+            setCenter(
                 LatLng(
                     lat = 40.743075076735416,
                     lng = -73.99652806346154
@@ -237,10 +250,23 @@ class StoreListActivity : AppCompatActivity() {
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater = menuInflater
+        inflater.inflate(R.menu.main, menu)
+        return true
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == android.R.id.home) {
-            if (::mapfitMap.isInitialized) initialMapSettings(mapfitMap)
+        when (item.itemId) {
+            android.R.id.home -> if (::mapfitMap.isInitialized) initialMapSettings(mapfitMap)
+            R.id.action_github -> {
+                val url = "https://github.com/mapfit/store-locator-android-sample"
+                val urlIntent = Intent(Intent.ACTION_VIEW)
+                urlIntent.data = Uri.parse(url)
+                startActivity(urlIntent)
+            }
         }
+
         return super.onOptionsItemSelected(item)
     }
 
