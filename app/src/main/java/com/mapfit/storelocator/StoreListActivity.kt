@@ -18,6 +18,7 @@ import com.mapfit.android.Mapfit
 import com.mapfit.android.MapfitMap
 import com.mapfit.android.OnMapReadyCallback
 import com.mapfit.android.annotations.Marker
+import com.mapfit.android.annotations.MarkerOptions
 import com.mapfit.android.annotations.callback.OnMarkerAddedCallback
 import com.mapfit.android.annotations.callback.OnMarkerClickListener
 import com.mapfit.android.geometry.LatLng
@@ -140,7 +141,7 @@ class StoreListActivity : AppCompatActivity() {
             16.asPx,
             16.asPx,
             0,
-            166.asPx
+            148.asPx
         )
         attributionContainer.layoutParams = newParams
 
@@ -160,33 +161,35 @@ class StoreListActivity : AppCompatActivity() {
      * Adds marker with building polygons with geocoding the given address.
      */
     private fun addGeocodedMarker(index: Int, address: String) {
+
+        val markerIcon = when (index) {
+            0 -> R.drawable.m1
+            1 -> R.drawable.m2
+            2 -> R.drawable.m3
+            3 -> R.drawable.m4
+            4 -> R.drawable.m5
+            5 -> R.drawable.m6
+            6 -> R.drawable.m7
+            7 -> R.drawable.m8
+            8 -> R.drawable.m9
+            else -> R.drawable.m10
+        }
+
+        val markerOptions = MarkerOptions()
+            .streetAddress(address)
+            .addBuildingPolygon(true)
+            .icon(markerIcon)
+
         mapfitMap.addMarker(
-            address,
-            true,
+            markerOptions,
             object : OnMarkerAddedCallback {
                 override fun onMarkerAdded(marker: Marker) {
 
                     // address is added as marker title by default when geocoded. To not to display
                     // Place Info, clearing the title.
-                    marker.setTitle("")
+                    marker.title = ""
 
                     storeMarkerHash[index] = marker
-
-                    // set marker icon according to it's index
-                    val markerIcon = when (index) {
-                        0 -> R.drawable.m1
-                        1 -> R.drawable.m2
-                        2 -> R.drawable.m3
-                        3 -> R.drawable.m4
-                        4 -> R.drawable.m5
-                        5 -> R.drawable.m6
-                        6 -> R.drawable.m7
-                        7 -> R.drawable.m8
-                        8 -> R.drawable.m9
-                        else -> R.drawable.m10
-                    }
-
-                    marker.setIcon(markerIcon)
 
                     // make the list visible when all addresses are displayed
                     if (storeMarkerHash.size == stores.size) {
@@ -202,13 +205,12 @@ class StoreListActivity : AppCompatActivity() {
     }
 
     private fun selectStore(position: Int) {
-
         if (!::selectionJob.isInitialized || selectionJob.isCompleted) {
 
             // zoom and center to selected store
             selectionJob = launch {
                 mapfitMap.setZoom(17f, 200)
-                storeMarkerHash[position]?.let { mapfitMap.setCenter(it.getPosition(), 200) }
+                storeMarkerHash[position]?.let { mapfitMap.setCenter(it.position, 200) }
             }
         }
     }
@@ -236,7 +238,6 @@ class StoreListActivity : AppCompatActivity() {
      */
     private fun initialMapSettings(mapfitMap: MapfitMap) = launch {
         mapfitMap.apply {
-
             setZoom(12.684684f, 500)
             setRotation(2.0572796f, 500)
             setTilt(0.8590987f, 500)
